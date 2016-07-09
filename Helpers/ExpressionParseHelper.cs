@@ -48,6 +48,15 @@ namespace DamnORM.Model
             }
             else if (expression.Body is MemberExpression)
             {
+                var expr = expression.Body as MemberExpression;
+            }
+            else if (expression.Body is MethodCallExpression)
+            {
+                var expr = ParseMethodCallExpression(expression.Body as MethodCallExpression);
+            }
+            else if (expression.Body is LambdaExpression)
+            {
+                var expr = expression.Body as LambdaExpression;
             }
 
             return null;
@@ -59,32 +68,53 @@ namespace DamnORM.Model
                    NumericTypes.Contains(Nullable.GetUnderlyingType(type));
         }
 
+        private static object ParseExpression(Expression exp)
+        {
+            if (exp is BinaryExpression)
+            {
+                var expr = exp as BinaryExpression;
+                return ParseBinaryExpression(expr.Left, expr.NodeType, expr.Right);
+            }
+            else if (exp is MethodCallExpression)
+            {
+                return ParseMethodCallExpression(exp as MethodCallExpression);
+            }
+            else if (exp is ConstantExpression)
+            {
+                return Evaluate(exp);
+            }
+
+            return null;
+        }
+
         private static SqlExpression<T> ParseBinaryExpression(Expression left, ExpressionType type, Expression right)
         {
-            object _left = null;
-            object _right = null;
-
-            if (left is BinaryExpression)
-            {
-                var expr = left as BinaryExpression;
-                _left = ParseBinaryExpression(expr.Left, expr.NodeType, expr.Right);
-            }
-
-            if (right is BinaryExpression)
-            {
-                var expr = right as BinaryExpression;
-                _right = ParseBinaryExpression(expr.Left, expr.NodeType, expr.Right);
-            }
-
             return new SqlExpression<T>
             {
-                LeftOperand = _left ?? GetValue(left),
+                LeftOperand = ParseExpression(left) ?? ExtractColumnInfo(left) ?? Evaluate(left),
                 Operator = type,
-                RightOperand = _right ?? GetValue(right)
+                RightOperand = ParseExpression(right) ?? ExtractColumnInfo(right) ?? Evaluate(right)
             };
         }
 
-        private static DbColumnAttribute GetAsColumnAttribute(Expression expr)
+        private static SqlExpression<T> ParseMethodCallExpression(MethodCallExpression method)
+        {
+            if (ReferenceEquals(method.Object, null))
+            {
+                throw new InvalidOperationException("This isn't a supported method.");
+            }
+
+            var parameter = ParseExpression(method.Arguments[0]);
+
+            return new SqlExpression<T>
+            {
+                LeftOperand = ExtractColumnInfo(method.Object),
+                Operator = SqlExpression<T>.GetMethodCallType(method.Method.Name),
+                RightOperand = SqlExpression<T>.FormatForLike(method.Method.Name, parameter)
+            };
+        }
+
+        private static DbColumnAttribute ExtractColumnInfo(Expression expr)
         {
             if (!(expr is MemberExpression))
                 return null;
@@ -94,7 +124,7 @@ namespace DamnORM.Model
             return columnAttribute.FirstOrDefault() as DbColumnAttribute;
         }
 
-        private static object GetAsLiteralValue(Expression expr)
+        private static object Evaluate(Expression expr)
         {
             // http://stackoverflow.com/a/2616980
             var objectMember = Expression.Convert(expr, typeof(object));
@@ -107,24 +137,6 @@ namespace DamnORM.Model
             }
 
             return string.Format("'{0}'", getter());
-        }
-
-        private static object GetAsMethodCall(Expression expr)
-        {
-            if (!(expr is MethodCallExpression))
-            {
-                return null;
-            }
-
-            var methodExpr = expr as MethodCallExpression;
-            return methodExpr;
-        }
-
-        private static object GetValue(Expression expr)
-        {
-            return GetAsColumnAttribute(expr) ??
-                GetAsMethodCall(expr) ??
-                GetAsLiteralValue(expr);
         }
     }
 }

@@ -11,6 +11,13 @@ namespace DamnORM.Model
     {
         private static int ParameterCounter = 0;
 
+        private static HashSet<string> LikeMethods = new HashSet<string>
+        {
+            "StartsWith",
+            "EndsWith",
+            "Contains"
+        };
+
         private static HashSet<Type> NumericTypes = new HashSet<Type>
         {
             typeof(bool),
@@ -25,14 +32,15 @@ namespace DamnORM.Model
             typeof(short),
             typeof(uint),
             typeof(ulong),
-            typeof(ushort),
-            typeof(UInt16),
-            typeof(UInt32),
-            typeof(UInt64),
-            typeof(Int16),
-            typeof(Int32),
-            typeof(Int64),
-            typeof(Single)
+            typeof(ushort)
+        };
+
+        public static Dictionary<string, ExpressionType> StringMethods = new Dictionary<string, ExpressionType>
+        {
+            { "StartsWith", ExpressionType.LeftShift },
+            { "EndsWith", ExpressionType.RightShift },
+            { "Contains", ExpressionType.Unbox },
+            { "CompareTo", ExpressionType.TypeEqual }
         };
 
         public object LeftOperand { get; set; }
@@ -93,9 +101,36 @@ namespace DamnORM.Model
                 case ExpressionType.OrElse: return "or";
                 case ExpressionType.Subtract: return "-";
                 case ExpressionType.UnaryPlus: return "+";
+                case ExpressionType.Unbox: return "LIKE";
             }
 
             throw new System.NotSupportedException(string.Format("{0} isn't supported", type));
+        }
+
+        internal static ExpressionType GetMethodCallType(string name)
+        {
+            return LikeMethods.Contains(name) ? ExpressionType.Unbox : ExpressionType.Try;
+        }
+
+        internal static object FormatForLike(string name, object val)
+        {
+            if (name == "StartsWith")
+            {
+                return string.Format("{0}%", val);
+            }
+            if (name == "EndsWith")
+            {
+                return string.Format("%{0}", val);
+            }
+            if (name == "Contains")
+            {
+                return string.Format("%{0}%", val);
+            }
+            if (name == "CompareTo")
+            {
+            }
+
+            return val;
         }
 
         private static string GetExpressionString(object obj, SqlExpression<T> source)

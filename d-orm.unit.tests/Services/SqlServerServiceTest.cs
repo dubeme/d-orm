@@ -192,7 +192,30 @@ namespace DamnORM.unit.tests.Services
             var inserted = sqlService.InsertMany(people);
             Assert.AreEqual(people.Length, inserted.Count());
 
-            var selectResult = sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_"));
+
+
+
+            var b = "SDSDSD";
+
+
+            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_"));
+            // sqlService.SelectMany<Person>(int.MaxValue, p => string.IsNullOrWhiteSpace(""));
+            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_" + b));
+            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.EndsWith("Didier_"));
+            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.StartsWith("Didier_"));
+            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_") || p.Age > 3);
+            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_"));
+            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_") == true);
+            sqlService.SelectMany<Person>(int.MaxValue, p => !p.FirstName.Contains("Didier_"));
+            sqlService.SelectMany<Person>(int.MaxValue, p => !p.FirstName.Contains("Didier_") == false);
+
+
+
+
+
+
+
+            var selectResult = sqlService.SelectMany<Person>(int.MaxValue, p => !p.FirstName.Contains("Didier_"));
             Assert.AreEqual(people.Length, selectResult.Count());
         }
 
