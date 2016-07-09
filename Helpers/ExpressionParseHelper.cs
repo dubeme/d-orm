@@ -9,30 +9,6 @@ namespace DamnORM.Model
     [Serializable]
     public static class ExpressionParseHelper<T>
     {
-        private static HashSet<Type> NumericTypes = new HashSet<Type>
-        {
-            typeof(bool),
-            typeof(byte),
-            typeof(char),
-            typeof(decimal),
-            typeof(double),
-            typeof(float),
-            typeof(int),
-            typeof(long),
-            typeof(sbyte),
-            typeof(short),
-            typeof(uint),
-            typeof(ulong),
-            typeof(ushort),
-            typeof(UInt16),
-            typeof(UInt32),
-            typeof(UInt64),
-            typeof(Int16),
-            typeof(Int32),
-            typeof(Int64),
-            typeof(Single)
-        };
-
         public static SqlExpression<T> Parse(Expression<Func<T, bool>> expression)
         {
             if (expression == null)
@@ -132,19 +108,7 @@ namespace DamnORM.Model
             var objectMember = Expression.Convert(expr, typeof(object));
             var getterLambda = Expression.Lambda<Func<object>>(objectMember);
             var getter = getterLambda.Compile();
-
-            if (IsNumericType(expr.Type))
-            {
-                return getter();
-            }
-
-            return string.Format("'{0}'", getter());
-        }
-
-        private static bool IsNumericType(Type type)
-        {
-            return NumericTypes.Contains(type) ||
-                   NumericTypes.Contains(Nullable.GetUnderlyingType(type));
+            return getter();
         }
     }
 }
