@@ -67,7 +67,7 @@ namespace DamnORM.Model
         {
             if (!(levelSource is SqlExpression<T>))
             {
-                return levelSource ?? string.Empty;
+                return levelSource;
             }
 
             var expr = levelSource as SqlExpression<T>;
@@ -156,11 +156,10 @@ namespace DamnORM.Model
             {
                 return string.Format("[{0}]", (obj as DbColumnAttribute).ColumnName);
             }
-            else if (Regex.IsMatch(obj.ToString(), @"(\[|\(|@)") == false)
+            else if (NumericTypes.Contains(obj.GetType()) == false && Regex.IsMatch(obj.ToString(), @"(\[|\(|@)") == false)
             {
                 var param = new KeyValuePair<string, object>(string.Format("@param_{0}", ParameterCounter++), obj);
                 source.ParameterValues.Add(param);
-
                 return param.Key;
             }
 
