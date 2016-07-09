@@ -3,6 +3,7 @@ using DamnORM.Model;
 using DamnORM.unit.tests.Model.POCOs;
 using System;
 using System.Text.RegularExpressions;
+using DamnORM.Helpers;
 
 namespace DamnORM.unit.tests.Model.SQL
 {

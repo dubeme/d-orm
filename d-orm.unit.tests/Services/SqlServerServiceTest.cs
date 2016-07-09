@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using DamnORM.Model;
 
 namespace DamnORM.unit.tests.Services
 {
@@ -192,28 +193,40 @@ namespace DamnORM.unit.tests.Services
             var inserted = sqlService.InsertMany(people);
             Assert.AreEqual(people.Length, inserted.Count());
 
-
-
-
             var b = "SDSDSD";
+            var t = 0;
+            var u = 4;
+            var v = 9;
+
+            var res = ExpressionParseHelper<Person>.Parse(p => p.Age >= t + u - p.ID + v);
+            var tres = ExpressionParseHelper<Person>.Parse(p => ~p.Age == 9).ToString();
+            res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("Didier_"));
+            res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("D" + "id" + "ier_" + p.LastName));
+            res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("Didier_" + b));
+            res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.EndsWith("Didier_"));
+            res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.StartsWith("Didier_"));
+            res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("Didier_") || p.Age > 3);
+            res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("Didier_"));
+            res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("Didier_") == true);
+            res = ExpressionParseHelper<Person>.Parse(p => !p.FirstName.Contains("Didier_"));
+            res = ExpressionParseHelper<Person>.Parse(p => !p.FirstName.Contains("Didier_") != true);
+            res = ExpressionParseHelper<Person>.Parse(p => !p.FirstName.Contains("Didier_") == false);
 
 
-            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_"));
-            // sqlService.SelectMany<Person>(int.MaxValue, p => string.IsNullOrWhiteSpace(""));
-            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_" + b));
-            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.EndsWith("Didier_"));
-            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.StartsWith("Didier_"));
-            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_") || p.Age > 3);
-            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_"));
-            sqlService.SelectMany<Person>(int.MaxValue, p => p.FirstName.Contains("Didier_") == true);
-            sqlService.SelectMany<Person>(int.MaxValue, p => !p.FirstName.Contains("Didier_"));
-            sqlService.SelectMany<Person>(int.MaxValue, p => !p.FirstName.Contains("Didier_") == false);
 
 
-
-
-
-
+            //var res = ExpressionParseHelper<Person>.Parse(p => p.Age >= t + u - p.ID + v);
+            //res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("Didier_"));
+            //res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("D" + "id" + "ier_" + p.LastName));
+            //res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("Didier_" + b));
+            //res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.EndsWith("Didier_"));
+            //res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.StartsWith("Didier_"));
+            //res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("Didier_") || p.Age > 3);
+            //res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("Didier_"));
+            //res = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains("Didier_") == true);
+            //res = ExpressionParseHelper<Person>.Parse(p => !p.FirstName.Contains("Didier_"));
+            //res = ExpressionParseHelper<Person>.Parse(p => !p.FirstName.Contains("Didier_") == false);
+            // res = ExpressionParseHelper<Person>.Parse(p => string.IsNullOrWhiteSpace(""));
 
             var selectResult = sqlService.SelectMany<Person>(int.MaxValue, p => !p.FirstName.Contains("Didier_"));
             Assert.AreEqual(people.Length, selectResult.Count());

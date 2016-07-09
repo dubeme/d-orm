@@ -1,5 +1,4 @@
 ﻿using DamnORM.Helpers;
-using DamnORM.Model;
 using DamnORM.Model.Exceptions;
 using System;
 using System.Collections.Generic;
