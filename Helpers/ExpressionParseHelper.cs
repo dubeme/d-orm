@@ -1,38 +1,42 @@
-﻿using DamnORM.Model.Attributes;
+﻿using DamnORM.Model;
+using DamnORM.Model.Attributes;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace DamnORM.Model
+namespace DamnORM.Helpers
 {
     [Serializable]
     public static class ExpressionParseHelper<T>
     {
         public static SqlExpression<T> Parse(Expression<Func<T, bool>> expression)
         {
-            if (expression == null)
-            {
-                return null;
-            }
+            var tpp = expression.Body.GetType();
 
             if (expression.Body is BinaryExpression)
             {
-                var expr = expression.Body as BinaryExpression;
-
-                return ParseBinaryExpression(expr.Left, expr.NodeType, expr.Right);
+                return ParseAsBinaryExpression(expression.Body as BinaryExpression);
+            }
+            else if (expression.Body is MethodCallExpression)
+            {
+                return ParseAsMethodCall(expression.Body as MethodCallExpression);
+            }
+            else if (expression.Body is UnaryExpression)
+            {
+                return ParseAsUnary(expression.Body as UnaryExpression);
             }
             else if (expression.Body is MemberExpression)
             {
                 var expr = expression.Body as MemberExpression;
-            }
-            else if (expression.Body is MethodCallExpression)
-            {
-                var expr = ParseMethodCallExpression(expression.Body as MethodCallExpression);
+                throw new NotImplementedException();
             }
             else if (expression.Body is LambdaExpression)
             {
                 var expr = expression.Body as LambdaExpression;
+                throw new NotImplementedException();
+            }
+            // else if (expression.Body is LogicalBinaryExpression)
+            {
             }
 
             return null;
@@ -40,18 +44,21 @@ namespace DamnORM.Model
 
         private static object ParseExpression(Expression expr)
         {
-            if (expr is BinaryExpression)
+            if (expr is ConstantExpression)
             {
-                var binExpr = expr as BinaryExpression;
-                return ParseBinaryExpression(binExpr.Left, binExpr.NodeType, binExpr.Right);
+                return Evaluate(expr);
+            }
+            else if (expr is BinaryExpression)
+            {
+                return ParseAsBinaryExpression(expr as BinaryExpression);
             }
             else if (expr is MethodCallExpression)
             {
-                return ParseMethodCallExpression(expr as MethodCallExpression);
+                return ParseAsMethodCall(expr as MethodCallExpression);
             }
-            else if (expr is ConstantExpression)
+            else if (expr is UnaryExpression)
             {
-                return Evaluate(expr);
+                return ParseAsUnary(expr as UnaryExpression);
             }
             else if (expr is LambdaExpression)
             {
@@ -59,23 +66,28 @@ namespace DamnORM.Model
             }
             else if (expr is MemberExpression)
             {
-                // var expr = expression.Body as MemberExpression;
+                return ParseAsMemberAcsess(expr as MemberExpression);
             }
 
             return null;
         }
 
-        private static SqlExpression<T> ParseBinaryExpression(Expression left, ExpressionType type, Expression right)
+        private static SqlExpression<T> ParseAsBinaryExpression(BinaryExpression expr)
         {
             return new SqlExpression<T>
             {
-                LeftOperand = ParseExpression(left) ?? ExtractColumnInfo(left) ?? Evaluate(left),
-                Operator = type,
-                RightOperand = ParseExpression(right) ?? ExtractColumnInfo(right) ?? Evaluate(right)
+                LeftOperand = ParseExpression(expr.Left) ?? ParseAsMemberAcsess(expr.Left as MemberExpression),
+                Operator = expr.NodeType,
+                RightOperand = ParseExpression(expr.Right) ?? ParseAsMemberAcsess(expr.Right as MemberExpression)
             };
         }
 
-        private static SqlExpression<T> ParseMethodCallExpression(MethodCallExpression method)
+        private static object ParseAsMemberAcsess(MemberExpression expr)
+        {
+            return ExtractColumnInfo(expr) ?? Evaluate(expr);
+        }
+
+        private static SqlExpression<T> ParseAsMethodCall(MethodCallExpression method)
         {
             if (ReferenceEquals(method.Object, null))
             {
@@ -88,7 +100,17 @@ namespace DamnORM.Model
             {
                 LeftOperand = ExtractColumnInfo(method.Object),
                 Operator = SqlExpression<T>.GetMethodCallType(method.Method.Name),
-                RightOperand = SqlExpression<T>.FormatForLike(method.Method.Name, parameter)
+                RightOperand = parameter
+            };
+        }
+
+        private static SqlExpression<T> ParseAsUnary(UnaryExpression expr)
+        {
+            return new SqlExpression<T>
+            {
+                IsBooleanNot = expr.Type.IsEquivalentTo(typeof(bool)),
+                Operator = expr.NodeType,
+                RightOperand = ParseExpression(expr.Operand)
             };
         }
 
