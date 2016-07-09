@@ -62,26 +62,28 @@ namespace DamnORM.Model
             return null;
         }
 
-        private static bool IsNumericType(Type type)
+        private static object ParseExpression(Expression expr)
         {
-            return NumericTypes.Contains(type) ||
-                   NumericTypes.Contains(Nullable.GetUnderlyingType(type));
-        }
-
-        private static object ParseExpression(Expression exp)
-        {
-            if (exp is BinaryExpression)
+            if (expr is BinaryExpression)
             {
-                var expr = exp as BinaryExpression;
-                return ParseBinaryExpression(expr.Left, expr.NodeType, expr.Right);
+                var binExpr = expr as BinaryExpression;
+                return ParseBinaryExpression(binExpr.Left, binExpr.NodeType, binExpr.Right);
             }
-            else if (exp is MethodCallExpression)
+            else if (expr is MethodCallExpression)
             {
-                return ParseMethodCallExpression(exp as MethodCallExpression);
+                return ParseMethodCallExpression(expr as MethodCallExpression);
             }
-            else if (exp is ConstantExpression)
+            else if (expr is ConstantExpression)
             {
-                return Evaluate(exp);
+                return Evaluate(expr);
+            }
+            else if (expr is LambdaExpression)
+            {
+                // var expr = expression.Body as LambdaExpression;
+            }
+            else if (expr is MemberExpression)
+            {
+                // var expr = expression.Body as MemberExpression;
             }
 
             return null;
@@ -137,6 +139,12 @@ namespace DamnORM.Model
             }
 
             return string.Format("'{0}'", getter());
+        }
+
+        private static bool IsNumericType(Type type)
+        {
+            return NumericTypes.Contains(type) ||
+                   NumericTypes.Contains(Nullable.GetUnderlyingType(type));
         }
     }
 }
