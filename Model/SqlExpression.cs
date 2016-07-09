@@ -73,14 +73,16 @@ namespace DamnORM.Model
             var expr = levelSource as SqlExpression<T>;
             var left = Stringify(expr.LeftOperand, topLevel);
             var right = Stringify(expr.RightOperand, topLevel);
-
+            
             var fmt = (expr.Operator == ExpressionType.Add || expr.Operator == ExpressionType.Subtract) ?
-                "{0} {1} {2}" : "({0} {1} {2})";
+                "{0} {1} {3}{2}{4}" : "({0} {1} {3}{2}{4})";
 
             return string.Format(fmt,
                 GetExpressionString(left, topLevel),
                 GetSqlOperator(expr.Operator, expr.IsBooleanNot),
-                GetExpressionString(right, topLevel));
+                GetExpressionString(right, topLevel),
+                (expr.Operator == EndsWith || expr.Operator == Contains) ? "'%' + " : "",
+                (expr.Operator == StartsWith || expr.Operator == Contains) ? "+ '%'" : "");
         }
 
         private static object GetSqlOperator(ExpressionType type, bool isBooleanNot)
