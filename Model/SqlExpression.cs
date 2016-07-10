@@ -48,6 +48,11 @@ namespace DamnORM.Model
             { "CompareTo", CompareTo}
         };
 
+        /// <summary>
+        /// Use this to instruct that the given operand doesn't have a string representation
+        /// </summary>
+        public static readonly object Nothing = new object();
+
         public object LeftOperand { get; set; }
         public ExpressionType Operator { get; set; }
         public object RightOperand { get; set; }
@@ -73,7 +78,7 @@ namespace DamnORM.Model
             var expr = levelSource as SqlExpression<T>;
             var left = Stringify(expr.LeftOperand, topLevel);
             var right = Stringify(expr.RightOperand, topLevel);
-            
+
             var fmt = (expr.Operator == ExpressionType.Add || expr.Operator == ExpressionType.Subtract) ?
                 "{0} {1} {3}{2}{4}" : "({0} {1} {3}{2}{4})";
 
@@ -82,7 +87,7 @@ namespace DamnORM.Model
                 GetSqlOperator(expr.Operator, expr.IsBooleanNot),
                 GetExpressionString(right, topLevel),
                 (expr.Operator == EndsWith || expr.Operator == Contains) ? "'%' + " : "",
-                (expr.Operator == StartsWith || expr.Operator == Contains) ? "+ '%'" : "");
+                (expr.Operator == StartsWith || expr.Operator == Contains) ? " + '%'" : "");
         }
 
         private static object GetSqlOperator(ExpressionType type, bool isBooleanNot)
@@ -149,7 +154,7 @@ namespace DamnORM.Model
 
         private static string GetExpressionString(object obj, SqlExpression<T> source)
         {
-            if (ReferenceEquals(obj, null))
+            if (ReferenceEquals(obj, Nothing))
             {
                 return string.Empty;
             }
@@ -158,14 +163,29 @@ namespace DamnORM.Model
             {
                 return string.Format("[{0}]", (obj as DbColumnAttribute).ColumnName);
             }
-            else if (NumericTypes.Contains(obj.GetType()) == false && Regex.IsMatch(obj.ToString(), @"(\[|\(|@)") == false)
+            else if (ShouldBeParameter(obj))
             {
-                var param = new KeyValuePair<string, object>(string.Format("@param_{0}", ParameterCounter++), obj);
-                source.ParameterValues.Add(param);
-                return param.Key;
+                return AddParameter(obj, source).Key;
             }
 
             return obj.ToString();
+        }
+
+        private static bool ShouldBeParameter(object obj)
+        {
+            return ReferenceEquals(obj, null) ||
+                (
+                    !NumericTypes.Contains(obj.GetType()) &&
+                    !Regex.IsMatch(obj.ToString(), @"(\[|\(|@)")
+                );
+        }
+
+        private static KeyValuePair<string, object> AddParameter(object val, SqlExpression<T> source)
+        {
+            var param = new KeyValuePair<string, object>(string.Format("@param_{0}", ParameterCounter++), val);
+            source.ParameterValues.Add(param);
+
+            return param;
         }
     }
 }
