@@ -57,9 +57,9 @@ namespace DamnORM.unit.tests.Model.SQL
         public void TestEqualComparison()
         {
             var expr = ExpressionParseHelper<Person>.Parse(p => p.Age == TEST_NUMBER);
+            var expected = string.Format("([age] = {0})", TEST_NUMBER);
 
-            var isAMatch = MatchesExpressionPattern(expr.ToString());
-            Assert.IsTrue(isAMatch);
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
@@ -67,9 +67,9 @@ namespace DamnORM.unit.tests.Model.SQL
         public void TestGreaterThanComparison()
         {
             var expr = ExpressionParseHelper<Person>.Parse(p => p.Age > TEST_NUMBER);
+            var expected = string.Format("([age] > {0})", TEST_NUMBER);
 
-            var isAMatch = MatchesExpressionPattern(expr.ToString());
-            Assert.IsTrue(isAMatch);
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
@@ -77,9 +77,9 @@ namespace DamnORM.unit.tests.Model.SQL
         public void TestLessThanComparison()
         {
             var expr = ExpressionParseHelper<Person>.Parse(p => p.Age < TEST_NUMBER);
+            var expected = string.Format("([age] < {0})", TEST_NUMBER);
 
-            var isAMatch = MatchesExpressionPattern(expr.ToString());
-            Assert.IsTrue(isAMatch);
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
@@ -87,9 +87,9 @@ namespace DamnORM.unit.tests.Model.SQL
         public void TestGreaterThanOrEqualToComparison()
         {
             var expr = ExpressionParseHelper<Person>.Parse(p => p.Age >= TEST_NUMBER);
+            var expected = string.Format("([age] >= {0})", TEST_NUMBER);
 
-            var isAMatch = MatchesExpressionPattern(expr.ToString());
-            Assert.IsTrue(isAMatch);
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
@@ -97,9 +97,9 @@ namespace DamnORM.unit.tests.Model.SQL
         public void TestLessThanOrEqualToComparison()
         {
             var expr = ExpressionParseHelper<Person>.Parse(p => p.Age <= TEST_NUMBER);
+            var expected = string.Format("([age] <= {0})", TEST_NUMBER);
 
-            var isAMatch = MatchesExpressionPattern(expr.ToString());
-            Assert.IsTrue(isAMatch);
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
@@ -107,9 +107,9 @@ namespace DamnORM.unit.tests.Model.SQL
         public void TestNotEqualToComparison()
         {
             var expr = ExpressionParseHelper<Person>.Parse(p => p.Age != TEST_NUMBER);
+            var expected = string.Format("([age] <> {0})", TEST_NUMBER);
 
-            var isAMatch = MatchesExpressionPattern(expr.ToString());
-            Assert.IsTrue(isAMatch);
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
@@ -117,9 +117,9 @@ namespace DamnORM.unit.tests.Model.SQL
         public void TestNotLessThanComparison()
         {
             var expr = ExpressionParseHelper<Person>.Parse(p => !(p.Age < TEST_NUMBER));
+            var expected = string.Format("( NOT ([age] < {0}))", TEST_NUMBER);
 
-            var isAMatch = MatchesExpressionPattern(expr.ToString());
-            Assert.IsTrue(isAMatch);
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
@@ -127,20 +127,20 @@ namespace DamnORM.unit.tests.Model.SQL
         public void TestNotGreaterThanComparison()
         {
             var expr = ExpressionParseHelper<Person>.Parse(p => !(p.Age > TEST_NUMBER));
+            var expected = string.Format("( NOT ([age] > {0}))", TEST_NUMBER);
 
-            var isAMatch = MatchesExpressionPattern(expr.ToString());
-            Assert.IsTrue(isAMatch);
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
         [TestCategory(SIMPLE_EXPRESSION)]
         public void TestLikeComparison()
         {
-            //var expr = BetterExpression<Person>
-            //    .BuildExpression(p => p.Age, SqlComparisonOperator.Like);
+            var testString = "hello";
+            var expr = ExpressionParseHelper<Person>.Parse(p => p.FirstName.Contains(testString));
 
-            //var isAMatch = MatchesExpressionPattern(expr.ToString());
-            //Assert.IsTrue(isAMatch);
+            var expected = "([fname] LIKE '%' + @param_0 + '%')";
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
@@ -148,32 +148,35 @@ namespace DamnORM.unit.tests.Model.SQL
         public void TestJoinedExpressions1()
         {
             var expr = ExpressionParseHelper<Person>.Parse(p => p.FirstName == null && p.LastName != null);
+            var expected = "(([fname] = @param_0) AND ([lname] <> @param_1))";
 
-            var isAMatch = MatchesExpressionPattern(expr.ToString());
-            Assert.IsTrue(isAMatch);
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
         [TestCategory(SIMPLE_EXPRESSION)]
         public void TestJoinedExpressions2()
         {
-            var expr1 = ExpressionParseHelper<Person>.Parse(p =>
+            var expr = ExpressionParseHelper<Person>.Parse(p =>
                     (p.FirstName == null && p.LastName != null) ||
                     (p.Gender == "F" && p.ID <= TEST_NUMBER));
 
-            var isAMatch = MatchesExpressionPattern(expr1.ToString());
-            Assert.IsTrue(isAMatch);
+            var str1 = "(([fname] = @param_0) AND ([lname] <> @param_1))";
+            var str2 = string.Format("(([gender] = @param_2) AND ([id] <= {0}))", TEST_NUMBER);
+            var expected = string.Format("({0} OR {1})", str1, str2);
+            
+            Assert.AreEqual(expected, expr.ToString());
         }
 
         [TestMethod]
-        [TestCategory(EXPRESSION_WITH_VALUES_MISSING)]
-        [ExpectedException(typeof(ArgumentException))]
-        public void Test_Column_Null()
+        [TestCategory(SIMPLE_EXPRESSION)]
+        public void Test_Compare_Null_To_String()
         {
-            var expr = ExpressionParseHelper<Person>.Parse(p => null == SIMPLE_EXPRESSION);
+            var testString = "hello world";
+            var expr = ExpressionParseHelper<Person>.Parse(p => null == testString);
+            var expected = string.Format("(@param_0 = @param_1)", TEST_NUMBER);
 
-            var isAMatch = MatchesExpressionPattern(expr.ToString());
-            Assert.IsTrue(isAMatch);
+            Assert.AreEqual(expected, expr.ToString());
         }
     }
 }
