@@ -9,34 +9,24 @@ namespace DamnORM.Helpers
     [Serializable]
     public static class ExpressionParseHelper<T>
     {
-        public static SqlExpression<T> Parse(Expression<Func<T, bool>> expression)
+        public static SqlExpression<T> Parse(Expression<Func<T, bool>> expr)
         {
-            var tpp = expression.Body.GetType();
+            if (ReferenceEquals(expr, null))
+            {
+                return null;
+            }
 
-            if (expression.Body is BinaryExpression)
+            if (expr.Body is BinaryExpression)
             {
-                return ParseAsBinaryExpression(expression.Body as BinaryExpression);
+                return ParseAsBinaryExpression(expr.Body as BinaryExpression);
             }
-            else if (expression.Body is MethodCallExpression)
+            else if (expr.Body is MethodCallExpression)
             {
-                return ParseAsMethodCall(expression.Body as MethodCallExpression);
+                return ParseAsMethodCall(expr.Body as MethodCallExpression);
             }
-            else if (expression.Body is UnaryExpression)
+            else if (expr.Body is UnaryExpression)
             {
-                return ParseAsUnary(expression.Body as UnaryExpression);
-            }
-            else if (expression.Body is MemberExpression)
-            {
-                var expr = expression.Body as MemberExpression;
-                throw new NotImplementedException();
-            }
-            else if (expression.Body is LambdaExpression)
-            {
-                var expr = expression.Body as LambdaExpression;
-                throw new NotImplementedException();
-            }
-            // else if (expression.Body is LogicalBinaryExpression)
-            {
+                return ParseAsUnary(expr.Body as UnaryExpression);
             }
 
             return null;
@@ -59,10 +49,6 @@ namespace DamnORM.Helpers
             else if (expr is UnaryExpression)
             {
                 return ParseAsUnary(expr as UnaryExpression);
-            }
-            else if (expr is LambdaExpression)
-            {
-                // var expr = expression.Body as LambdaExpression;
             }
             else if (expr is MemberExpression)
             {
@@ -108,6 +94,7 @@ namespace DamnORM.Helpers
         {
             return new SqlExpression<T>
             {
+                LeftOperand = SqlExpression<T>.Nothing,
                 IsBooleanNot = expr.Type.IsEquivalentTo(typeof(bool)),
                 Operator = expr.NodeType,
                 RightOperand = ParseExpression(expr.Operand)
@@ -126,6 +113,11 @@ namespace DamnORM.Helpers
 
         private static object Evaluate(Expression expr)
         {
+            if (expr == null)
+            {
+                return null;
+            }
+
             // http://stackoverflow.com/a/2616980
             var objectMember = Expression.Convert(expr, typeof(object));
             var getterLambda = Expression.Lambda<Func<object>>(objectMember);
