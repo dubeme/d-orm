@@ -31,7 +31,7 @@ namespace DamnORM.Helpers
         /// <typeparam name="T">
         ///     A CLR class/struct reprsenting the table definition.
         ///     <para>
-        ///         T must be decorated using <see cref="DamnORM.Model.Attributes.DbColumnAttribute" />.
+        ///         T must be decorated using <see cref="DbColumnAttribute" />.
         ///     </para>
         /// </typeparam>
         /// <param name="memberExpression">An expression indicating which property to use</param>

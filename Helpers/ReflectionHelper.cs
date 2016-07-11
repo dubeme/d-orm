@@ -20,8 +20,8 @@ namespace DamnORM.Helpers
         ///     A CLR class/struct reprsenting the table definition.
         ///     <para>
         ///         T must be decorated using the
-        ///         <see cref="DamnORM.Model.Attributes.DbTableAttribute" /> and
-        ///         <see cref="DamnORM.Model.Attributes.DbColumnAttribute" /> respectively.
+        ///         <see cref="DbTableAttribute" /> and
+        ///         <see cref="DbColumnAttribute" /> respectively.
         ///     </para>
         /// </typeparam>
         /// <returns>The table metadata</returns>
@@ -37,8 +37,8 @@ namespace DamnORM.Helpers
         ///     A CLR class/struct reprsenting the table definition.
         ///     <para>
         ///         T must be decorated using the
-        ///         <see cref="DamnORM.Model.Attributes.DbTableAttribute" /> and
-        ///         <see cref="DamnORM.Model.Attributes.DbColumnAttribute" /> respectively.
+        ///         <see cref="DbTableAttribute" /> and
+        ///         <see cref="DbColumnAttribute" /> respectively.
         ///     </para>
         /// </typeparam>
         /// <param name="obj">An object whose values are stored in the metadata.</param>
@@ -100,13 +100,13 @@ namespace DamnORM.Helpers
         ///     A CLR class/struct reprsenting the table definition.
         ///     <para>
         ///         T must be decorated using the
-        ///         <see cref="DamnORM.Model.Attributes.DbTableAttribute" /> and
-        ///         <see cref="DamnORM.Model.Attributes.DbColumnAttribute" /> respectively.
+        ///         <see cref="DbTableAttribute" /> and
+        ///         <see cref="DbColumnAttribute" /> respectively.
         ///     </para>
         /// </typeparam>
         /// <param name="dataReader">The data reader.</param>
         /// <param name="columns">The metadata about the columns.</param>
-        /// <returns>THe object</returns>
+        /// <returns>The object</returns>
         public static T CreateInstance<T>(
             IDataReader dataReader,
             IEnumerable<DbColumnReflectionInfo> columns)
@@ -134,13 +134,13 @@ namespace DamnORM.Helpers
         ///     A CLR class/struct reprsenting the table definition.
         ///     <para>
         ///         T must be decorated using the
-        ///         <see cref="DamnORM.Model.Attributes.DbTableAttribute" /> and
-        ///         <see cref="DamnORM.Model.Attributes.DbColumnAttribute" /> respectively.
+        ///         <see cref="DbTableAttribute" /> and
+        ///         <see cref="DbColumnAttribute" /> respectively.
         ///     </para>
         /// </typeparam>
         /// <param name="columnValueMapping">The column-value mapping.</param>
         /// <param name="columns">The metadata about the columns.</param>
-        /// <returns>THe object</returns>
+        /// <returns>The object</returns>
         public static T CreateInstance<T>(
             IDictionary<string, object> columnValueMapping,
             IEnumerable<DbColumnReflectionInfo> columns)
@@ -166,14 +166,14 @@ namespace DamnORM.Helpers
         ///     A CLR class/struct reprsenting the table definition.
         ///     <para>
         ///         T must be decorated using the
-        ///         <see cref="DamnORM.Model.Attributes.DbTableAttribute" /> and
-        ///         <see cref="DamnORM.Model.Attributes.DbColumnAttribute" /> respectively.
+        ///         <see cref="DbTableAttribute" /> and
+        ///         <see cref="DbColumnAttribute" /> respectively.
         ///     </para>
         /// </typeparam>
         /// <param name="obj">The object.</param>
         /// <param name="dataReader">The data reader.</param>
         /// <param name="columns">The metadata about the columns.</param>
-        /// <returns>THe object</returns>
+        /// <returns>The object</returns>
         public static T SetProperties<T>(ref T obj,
             IDataReader dataReader,
             IEnumerable<DbColumnReflectionInfo> columns)
@@ -235,7 +235,7 @@ namespace DamnORM.Helpers
         /// <param name="source">The source.</param>
         /// <param name="destinationType">Type to convert to.</param>
         /// <returns>Converted value</returns>
-        /// <exception cref="System.ArgumentNullException">If destinationType is null</exception>
+        /// <exception cref="ArgumentNullException">If destinationType is null</exception>
         private static object Convert(object source, Type destinationType)
         {
             if (destinationType == null)
